@@ -1,20 +1,47 @@
-import VolunterForm from './components/VolunterForm'
-import VolunterList from './components/VolunterList'
-import { TaskProvider } from './context/VolunterContext'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './components/Login';
+import DashboardLayout from './components/DashboardLayout';
+import Dashboard from './pages/Dashboard';
+import StaffVolunteers from './pages/StaffVolunteers';
+import AdvisorVolunteers from './pages/AdvisorVolunteers';
+import { AuthProvider, useAuth } from './context/AuthContext';
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppContent = () => {
+  const { user } = useAuth();
+
+  return (
+    <Routes>
+      <Route path="/" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+      
+      <Route path="/" element={
+        <ProtectedRoute>
+          <DashboardLayout />
+        </ProtectedRoute>
+      }>
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="staff" element={<StaffVolunteers />} />
+        <Route path="asesores" element={<AdvisorVolunteers />} />
+      </Route>
+    </Routes>
+  );
+};
 
 export default function App() {
   return (
-    <div className="bg-zinc-900 h-screen text-white flex items-center
-    justify-center">
-      <div className="bg-gray-950 p-4 w-2/5">
-        <h1 className="text-3xl font-bold text-center block my-2"> Yachay Wasi Intranet </h1>
-        
-        <TaskProvider>
-          <VolunterForm />
-          <VolunterList />
-        </TaskProvider>
-
-      </div>
-    </div>
-  )
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
+  );
 }
