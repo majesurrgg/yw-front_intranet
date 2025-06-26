@@ -1,14 +1,13 @@
+import api from './api';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:3000/api';
-
 export interface LoginCredentials {
   email: string;
   password: string;
 }
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;  
+  refreshToken: string;
   user: {
     id: number;
     email: string;
@@ -19,9 +18,11 @@ export interface LoginResponse {
 export class AuthService {
   static async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      const response = await axios.post<LoginResponse>(`${API_URL}/auth/login`, credentials);
-      if (response.data.token) {
-        localStorage.setItem('user', JSON.stringify(response.data));
+      const response = await api.post<LoginResponse>(`/auth/login`, credentials);
+      if (response.data.accessToken) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
       }
       return response.data;
     } catch (error) {
@@ -30,8 +31,11 @@ export class AuthService {
   }
 
   static logout(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   }
+  
 
   static getCurrentUser(): LoginResponse | null {
     const userStr = localStorage.getItem('user');
@@ -41,7 +45,7 @@ export class AuthService {
     return null;
   }
 
-  private static handleError(error: any): Error {
+  private static handleError(error: unknown): Error {
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.message || 'Error en el servidor';
       return new Error(message);
