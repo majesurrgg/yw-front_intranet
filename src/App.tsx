@@ -4,6 +4,7 @@ import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import StaffVolunteers from './pages/StaffVolunteers';
 import AdvisorVolunteers from './pages/AdvisorVolunteers';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -22,7 +23,8 @@ const AppContent = () => {
   return (
     <Routes>
       <Route path="/" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
-      
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+
       <Route path="/" element={
         <ProtectedRoute>
           <DashboardLayout />
