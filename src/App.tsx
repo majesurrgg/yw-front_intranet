@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './components/Login';
 import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/Dashboard';
+import Postulants from './pages/Postulants';
 import StaffVolunteers from './pages/StaffVolunteers';
 import AdvisorVolunteers from './pages/AdvisorVolunteers';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -31,6 +32,7 @@ const AppContent = () => {
         </ProtectedRoute>
       }>
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="postulantes" element={<Postulants />} />
         <Route path="staff" element={<StaffVolunteers />} />
         <Route path="asesores" element={<AdvisorVolunteers />} />
       </Route>

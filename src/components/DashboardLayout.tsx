@@ -12,7 +12,7 @@ const MainContent = styled.main`
   flex: 1;
   margin-left: 250px;
   padding: 2rem;
-  background: #f5f5f5;
+  background: #ffffff;
   min-height: 100vh;
 
   @media (max-width: 768px) {

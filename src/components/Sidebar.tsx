@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaChartBar, FaUsers, FaChalkboardTeacher, FaBars, FaTimes } from 'react-icons/fa';
+import { FaChartBar, FaUsers, FaChalkboardTeacher, FaBars, FaTimes, FaUserPlus } from 'react-icons/fa';
 
 const SidebarContainer = styled.div<{ isOpen: boolean }>`
   background: #1a1a1a;
@@ -25,7 +25,7 @@ const LogoContainer = styled.div`
 `;
 
 const Logo = styled.img`
-  width: 120px;
+  width: -webkit-fill-available;
   height: auto;
 `;
 
@@ -94,6 +94,7 @@ const Sidebar: React.FC = () => {
 
   const menuItems = [
     { path: '/dashboard', icon: <FaChartBar />, label: 'Dashboard' },
+    { path: '/postulantes', icon: <FaUserPlus />, label: 'Administrar Postulantes' },
     { path: '/staff', icon: <FaUsers />, label: 'Voluntarios Staff' },
     { path: '/asesores', icon: <FaChalkboardTeacher />, label: 'Voluntarios Asesores' },
   ];
@@ -108,7 +109,7 @@ const Sidebar: React.FC = () => {
       
       <SidebarContainer isOpen={isOpen}>
         <LogoContainer>
-          <Logo src="/assets/images/logo-login.png" alt="Yachay Wasi" />
+          <Logo src="/assets/images/logo_sidebar.png" alt="Logo Yachay Wasi" />
         </LogoContainer>
         
         <NavList>
