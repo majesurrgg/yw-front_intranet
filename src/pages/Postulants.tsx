@@ -3,6 +3,7 @@ import type { Postulant } from '../interfaces/postulant.interface';
 import { postulantsService } from '../services/postulants.service';
 import Pagination from '../components/Pagination';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const GradientTitle = styled.h1`
   font-size: 2.5rem;
@@ -42,6 +43,8 @@ const Postulants: React.FC = () => {
     howDidYouFindUs: '',
     schoolGrades: ''
   });
+
+  const navigate = useNavigate();
 
   const fetchPostulants = async () => {
     try {
@@ -242,6 +245,9 @@ const Postulants: React.FC = () => {
     };
     return areas[areaId] || `Área ${areaId}`;
   };
+
+  // Agrega un gradiente para el círculo
+  const gradientCircle = 'bg-gradient-to-r from-[#FF0000] via-[#033ED8] via-[#347FF6] to-[#FDB82D]';
 
   if (loading && allPostulants.length === 0) {
     return (
@@ -638,9 +644,8 @@ const Postulants: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '1200px' }}>
               <thead className="bg-gradient-to-r from-blue-600 to-blue-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                    Postulante
-                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">Postulante</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
                     Contacto
                   </th>
@@ -668,18 +673,22 @@ const Postulants: React.FC = () => {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
                     ¿Cómo nos encontró?
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                    Estado
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredPostulants.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((postulant) => (
-                  <tr key={postulant.id} className="hover:bg-gray-50 transition-colors duration-200">
+                  <tr
+                    key={postulant.id}
+                    className="hover:bg-blue-50 cursor-pointer transition"
+                    onClick={() => navigate(`/postulants/${postulant.id}`)}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(postulant.statusVolunteer)}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                          <div className={`h-10 w-10 rounded-full ${gradientCircle} flex items-center justify-center`} style={{background: 'linear-gradient(90deg, #FF0000 0%, #033ED8 31%, #347FF6 68%, #FDB82D 100%)'}}>
                             <span className="text-sm font-medium text-white">
                               {postulant.name.charAt(0)}{postulant.lastName.charAt(0)}
                             </span>
@@ -743,9 +752,6 @@ const Postulants: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {postulant.howDidYouFindUs || 'No especificado'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(postulant.statusVolunteer)}
                     </td>
                   </tr>
                 ))}

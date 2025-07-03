@@ -6,6 +6,7 @@ import Postulants from './pages/Postulants';
 import StaffVolunteers from './pages/StaffVolunteers';
 import AdvisorVolunteers from './pages/AdvisorVolunteers';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import PostulantDetail from './pages/PostulantDetail';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,6 +36,7 @@ const AppContent = () => {
         <Route path="postulantes" element={<Postulants />} />
         <Route path="staff" element={<StaffVolunteers />} />
         <Route path="asesores" element={<AdvisorVolunteers />} />
+        <Route path="postulants/:id" element={<PostulantDetail />} />
       </Route>
     </Routes>
   );
