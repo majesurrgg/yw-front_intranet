@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaChartBar, FaUsers, FaChalkboardTeacher, FaBars, FaTimes, FaUserPlus } from 'react-icons/fa';
+import { FaChartBar, FaUsers, FaChalkboardTeacher, FaBars, FaTimes, FaUserPlus, FaPowerOff } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
 const SidebarContainer = styled.div<{ isOpen: boolean }>`
   background: #1a1a1a;
@@ -12,6 +13,8 @@ const SidebarContainer = styled.div<{ isOpen: boolean }>`
   top: 0;
   transition: all 0.3s ease-in-out;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 768px) {
     transform: translateX(${({ isOpen }) => (isOpen ? '0' : '-100%')});
@@ -86,17 +89,45 @@ const Overlay = styled.div<{ isOpen: boolean }>`
   }
 `;
 
+const LogoutButton = styled.button`
+  margin-top: auto;
+  margin-bottom: 1rem;
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #b91c1c;
+  }
+`;
+
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { logout } = useAuth();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+  };
 
   const menuItems = [
     { path: '/dashboard', icon: <FaChartBar />, label: 'Dashboard' },
     { path: '/postulantes', icon: <FaUserPlus />, label: 'Administrar Postulantes' },
     { path: '/staff', icon: <FaUsers />, label: 'Voluntarios Staff' },
-    { path: '/asesores', icon: <FaChalkboardTeacher />, label: 'Voluntarios Asesores' },
+    { path: '/adviser-volunteers', icon: <FaChalkboardTeacher />, label: 'Voluntarios Asesores' },
   ];
 
   return (
@@ -126,6 +157,11 @@ const Sidebar: React.FC = () => {
             </NavItem>
           ))}
         </NavList>
+        
+        <LogoutButton onClick={handleLogout}>
+          <FaPowerOff />
+          <span>Cerrar Sesión</span>
+        </LogoutButton>
       </SidebarContainer>
     </>
   );

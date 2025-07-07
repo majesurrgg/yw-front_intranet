@@ -488,49 +488,49 @@ const PostulantDetail: React.FC = () => {
           <SectionBox>
             <SectionTitle>Datos personales</SectionTitle>
             <FormGrid>
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || (data.name && data.lastName)) && (
+              {data?.name && data?.lastName && (
                 <Field>
                   <Label>Nombre</Label>
                   <Value>{data.name} {data.lastName}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.email) && (
+              {data?.email && (
                 <Field>
                   <Label>Email</Label>
                   <Value>{data.email}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.phoneNumber) && (
+              {data?.phoneNumber && (
                 <Field>
                   <Label>Teléfono</Label>
                   <Value>{data.phoneNumber}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.birthDate) && (
+              {data?.birthDate && (
                 <Field>
                   <Label>Fecha de nacimiento</Label>
                   <Value>{data.birthDate ? new Date(data.birthDate).toLocaleDateString() : ''}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.birthDate) && (
+              {data?.birthDate && (
                 <Field>
                   <Label>Edad</Label>
                   <Value>{data.birthDate ? Math.floor((Date.now() - new Date(data.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) + ' años' : '-'}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.typeIdentification) && (
+              {data?.typeIdentification && (
                 <Field>
                   <Label>Tipo de identificación</Label>
                   <Value>{data.typeIdentification}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.numIdentification) && (
+              {data?.numIdentification && (
                 <Field>
                   <Label>Número de identificación</Label>
                   <Value>{data.numIdentification}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.programsUniversity) && (
+              {data?.programsUniversity && (
                 <Field>
                   <Label>Universidad</Label>
                   <Value>{data.programsUniversity}</Value>
@@ -555,60 +555,62 @@ const PostulantDetail: React.FC = () => {
           <SectionBox>
             <SectionTitle>Datos de postulación</SectionTitle>
             <FormGrid>
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.datePostulation) && (
+              {data?.datePostulation && (
                 <Field>
                   <Label>Fecha de postulación</Label>
                   <Value>{data.datePostulation ? new Date(data.datePostulation).toLocaleDateString() : ''}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.wasVoluntary !== undefined) && (
+              {data?.wasVoluntary !== undefined && data?.wasVoluntary !== null && (
                 <Field>
                   <Label>¿Fue voluntario antes?</Label>
                   <Value>{data.wasVoluntary ? 'Sí' : 'No'}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.volunteerMotivation) && (
+              {data?.volunteerMotivation && (
                 <Field>
                   <Label>Motivación</Label>
                   <Value>{data.volunteerMotivation}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.howDidYouFindUs) && (
+              {data?.howDidYouFindUs && (
                 <Field>
                   <Label>¿Cómo nos encontró?</Label>
                   <Value>{data.howDidYouFindUs}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.advisoryCapacity) && (
+              {data?.advisoryCapacity && (
                 <Field>
                   <Label>Capacidad de asesoría</Label>
-                  <Value>{data.advisoryCapacity ?? '-'}</Value>
+                  <Value>{data.advisoryCapacity}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.schoolGrades) && (
+              {data?.schoolGrades && (
                 <Field>
                   <Label>Grados de colegio</Label>
                   <Value>{data.schoolGrades}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.callingPlan !== undefined) && (
+              {data?.callingPlan !== undefined && data?.callingPlan !== null && (
                 <Field>
                   <Label>¿Plan de llamadas?</Label>
                   <Value>{data.callingPlan ? 'Sí' : 'No'}</Value>
                 </Field>
               )}
-              {(!data.typeVolunteer || data.typeVolunteer !== 'STAFF' || data.quechuaLevel) && (
+              {data?.quechuaLevel && (
                 <Field>
                   <Label>Nivel de Quechua</Label>
                   <Value>{data.quechuaLevel}</Value>
                 </Field>
               )}
-              <Field style={{ gridColumn: '1 / -1' }}>
-                <Label>Disponibilidad</Label>
-                <Value style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
-                  <ScheduleTable schedules={data.schedules} />
-                </Value>
-              </Field>
+              {Array.isArray(data?.schedules) && data.schedules.length > 0 && (
+                <Field style={{ gridColumn: '1 / -1' }}>
+                  <Label>Disponibilidad</Label>
+                  <Value style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
+                    <ScheduleTable schedules={data.schedules} />
+                  </Value>
+                </Field>
+              )}
             </FormGrid>
             <div style={{ display: 'flex', gap: '1.2rem', marginTop: '2.2rem', justifyContent: 'center' }}>
               <ActionButton
