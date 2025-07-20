@@ -1,7 +1,5 @@
-import axios from 'axios';
 import type { Postulant, ApiResponse } from '../interfaces/postulant.interface';
-
-const API_BASE_URL = 'http://localhost:3000/api';
+import api from './api';
 
 export const postulantsService = {
   async getPostulants(page: number = 1, limit: number = 10): Promise<ApiResponse> {
@@ -11,7 +9,7 @@ export const postulantsService = {
         limit: limit.toString(),
       });
 
-      const response = await axios.get(`${API_BASE_URL}/volunteer?${params}`);
+      const response = await api.get(`/volunteer?${params}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching postulants:', error);
@@ -21,7 +19,7 @@ export const postulantsService = {
 
   async getPostulantById(id: number): Promise<Postulant> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/volunteer/${id}`);
+      const response = await api.get(`/volunteer/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching postulant:', error);
@@ -31,7 +29,7 @@ export const postulantsService = {
 
   async updatePostulantStatus(id: number, status: 'PENDING' | 'APPROVED' | 'REJECTED'): Promise<Postulant> {
     try {
-      const response = await axios.patch(`${API_BASE_URL}/volunteer/${id}/status`, { status });
+      const response = await api.patch(`/volunteer/${id}/status`, { status });
       return response.data;
     } catch (error) {
       console.error('Error updating postulant status:', error);

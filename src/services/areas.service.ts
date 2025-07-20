@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3000/api';
+import api from './api';
 
 export interface Area {
   id: number;
@@ -16,7 +14,7 @@ export interface AreasResponse {
 export class AreasService {
   static async getAreas(): Promise<Area[]> {
     try {
-      const response = await axios.get<AreasResponse>(`${API_URL}/areas`);
+      const response = await api.get<AreasResponse>(`/areas`);
       return response.data.areaStaff;
     } catch (error) {
       console.error('Error fetching areas:', error);

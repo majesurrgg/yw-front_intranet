@@ -2,7 +2,7 @@ import axios from "axios";
 import type { AxiosInstance } from "axios";
 
     const API_URL_LOCAL: string = 'http://localhost:3000/api';
-    //const API_URL_PRODUCTION: string = '';
+    const API_URL_PRODUCTION: string = 'https://yachaywasiback.shop/api';
     // >>>desde un env leer el url, mas dinamico
 
     const api: AxiosInstance = axios.create({
@@ -12,9 +12,9 @@ import type { AxiosInstance } from "axios";
         },
     });
     api.interceptors.request.use(config => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
     });
