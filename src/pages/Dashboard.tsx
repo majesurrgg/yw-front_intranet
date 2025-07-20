@@ -11,7 +11,7 @@ import {
   Legend
 } from 'chart.js';
 import { Doughnut, Bar } from 'react-chartjs-2';
-import { postulantsService } from '../services/postulants.service';
+import { postulantsService } from '../services/volunteer-postulation/postulants.service';
 import type { Postulant } from '../interfaces/postulant.interface';
 
 ChartJS.register(

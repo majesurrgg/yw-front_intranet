@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
 import { FaFilePdf, FaVideo, FaEdit, FaTrash, FaSave } from 'react-icons/fa';
+import volunteerService from '../services/volunteer-postulation/volunteer.service';
 
 const GradientTitle = styled.h1`
   font-size: 2.5rem;
@@ -360,6 +361,7 @@ const Smile = styled.div`
 
 const VoluntarioDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -371,16 +373,21 @@ const VoluntarioDetail: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
-    setError(null);
-    fetch(`http://localhost:3000/api/volunteer/profile-volunteer/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('No se pudo obtener el voluntario');
-        return res.json();
-      })
-      .then(setData)
-      .catch(() => setError('No se pudo obtener el voluntario'))
-      .finally(() => setLoading(false));
+    const fetchVolunteer = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const volunteerData = await volunteerService.getVolunteerById(id);
+        setData(volunteerData);
+      } catch (err) {
+        console.error('Error fetching volunteer:', err);
+        setError('No se pudo obtener el voluntario');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchVolunteer();
   }, [id]);
 
   useEffect(() => {
@@ -392,21 +399,33 @@ const VoluntarioDetail: React.FC = () => {
   };
 
   const handleSave = async () => {
-    // PATCH/PUT a la API
-    await fetch(`http://localhost:3000/api/volunteer/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form)
-    });
-    setShowSuccess(true);
-    setEditMode(false);
+    if (!id) return;
+    
+    try {
+      await volunteerService.updateVolunteer(id, form);
+      setShowSuccess(true);
+      setEditMode(false);
+      // Refresh the data after update
+      const updatedData = await volunteerService.getVolunteerById(id);
+      setData(updatedData);
+    } catch (err) {
+      console.error('Error updating volunteer:', err);
+      setError('Error al actualizar el voluntario');
+    }
   };
 
   const handleDelete = async () => {
-    await fetch(`http://localhost:3000/api/volunteer/${id}`, { method: 'DELETE' });
-    setShowDeleteConfirm(false);
-    // Redirigir o mostrar mensaje según tu flujo
-    window.location.href = '/staff';
+    if (!id) return;
+    
+    try {
+      await volunteerService.deleteVolunteer(id);
+      setShowDeleteConfirm(false);
+      // Use navigate instead of window.location for better SPA behavior
+      navigate('/staff');
+    } catch (err) {
+      console.error('Error deleting volunteer:', err);
+      setError('Error al eliminar el voluntario');
+    }
   };
 
   return (
@@ -539,7 +558,7 @@ const VoluntarioDetail: React.FC = () => {
                   {!editMode ? (
                     <Value>{form?.datePostulation ? new Date(form?.datePostulation).toLocaleDateString() : ''}</Value>
                   ) : (
-                    <input type="date" value={form?.datePostulation ? form?.datePostulation.substring(0,10) : ''} onChange={e => handleInput('datePostulation', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                    <input placeholder="Fecha de postulación" type="date" value={form?.datePostulation ? form?.datePostulation.substring(0,10) : ''} onChange={e => handleInput('datePostulation', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
                   )}
                 </Field>
               )}
@@ -562,7 +581,7 @@ const VoluntarioDetail: React.FC = () => {
                   {!editMode ? (
                     <Value>{form?.volunteerMotivation}</Value>
                   ) : (
-                    <input value={form?.volunteerMotivation || ''} onChange={e => handleInput('volunteerMotivation', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                    <input placeholder="Motivación" value={form?.volunteerMotivation || ''} onChange={e => handleInput('volunteerMotivation', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
                   )}
                 </Field>
               )}
@@ -572,7 +591,7 @@ const VoluntarioDetail: React.FC = () => {
                   {!editMode ? (
                     <Value>{form?.howDidYouFindUs}</Value>
                   ) : (
-                    <input value={form?.howDidYouFindUs || ''} onChange={e => handleInput('howDidYouFindUs', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                    <input placeholder="¿Cómo nos encontró?" value={form?.howDidYouFindUs || ''} onChange={e => handleInput('howDidYouFindUs', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
                   )}
                 </Field>
               )}
@@ -582,7 +601,7 @@ const VoluntarioDetail: React.FC = () => {
                   {!editMode ? (
                     <Value>{form?.advisoryCapacity}</Value>
                   ) : (
-                    <input value={form?.advisoryCapacity || ''} onChange={e => handleInput('advisoryCapacity', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                    <input placeholder="Capacidad de asesoría" value={form?.advisoryCapacity || ''} onChange={e => handleInput('advisoryCapacity', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
                   )}
                 </Field>
               )}
@@ -592,7 +611,7 @@ const VoluntarioDetail: React.FC = () => {
                   {!editMode ? (
                     <Value>{form?.schoolGrades}</Value>
                   ) : (
-                    <input value={form?.schoolGrades || ''} onChange={e => handleInput('schoolGrades', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                    <input placeholder="Grados de colegio" value={form?.schoolGrades || ''} onChange={e => handleInput('schoolGrades', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
                   )}
                 </Field>
               )}

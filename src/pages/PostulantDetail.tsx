@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
 import { FaFilePdf, FaVideo, FaCheck, FaTimes } from 'react-icons/fa';
+import postulantService from '../services/volunteer-postulation/postulant.service';
 
 const GradientTitle = styled.h1`
   font-size: 2.5rem;
@@ -353,18 +354,26 @@ const PostulantDetail: React.FC = () => {
   const [modalConfirm, setModalConfirm] = useState<{ type: 'approve' | 'reject' | null, msg: string } | null>(null);
   const [localStatus, setLocalStatus] = useState<string | null>(null);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     setError(null);
-    fetch(`http://localhost:3000/api/volunteer/profile-volunteer/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('No se pudo obtener el postulante');
-        return res.json();
-      })
-      .then(setData)
-      .catch(() => setError('No se pudo obtener el postulante'))
-      .finally(() => setLoading(false));
+    
+    const fetchPostulant = async () => {
+      try {
+        const postulantData = await postulantService.getPostulantById(id);
+        setData(postulantData);
+      } catch (error) {
+        console.error('Error fetching postulant:', error);
+        setError('No se pudo obtener el postulante');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPostulant();
   }, [id]);
 
   const dayMap: Record<string, string> = {
@@ -438,10 +447,13 @@ const PostulantDetail: React.FC = () => {
     setActionLoading('approve');
     setActionMsg(null);
     try {
-      const res = await fetch(`http://localhost:3000/api/volunteer/${id}/approve`, { method: 'POST' });
-      if (!res.ok) throw new Error('No se pudo aprobar la solicitud');
-      setModalConfirm({ type: 'approve', msg: '¡Solicitud aprobada exitosamente! Se ha enviado un correo de confirmación al postulante.' });
-    } catch (e) {
+      await postulantService.approvePostulant(id);
+      setModalConfirm({ 
+        type: 'approve', 
+        msg: '¡Solicitud aprobada exitosamente! Se ha enviado un correo de confirmación al postulante.' 
+      });
+    } catch (error) {
+      console.error('Error approving postulant:', error);
       setActionMsg('Error al aprobar la solicitud');
     } finally {
       setActionLoading(null);
@@ -452,10 +464,13 @@ const PostulantDetail: React.FC = () => {
     setActionLoading('reject');
     setActionMsg(null);
     try {
-      const res = await fetch(`http://localhost:3000/api/volunteer/${id}/reject`, { method: 'POST' });
-      if (!res.ok) throw new Error('No se pudo rechazar la solicitud');
-      setModalConfirm({ type: 'reject', msg: 'Solicitud rechazada. Se ha enviado un correo de notificación al postulante.' });
-    } catch (e) {
+      await postulantService.rejectPostulant(id);
+      setModalConfirm({ 
+        type: 'reject', 
+        msg: 'Solicitud rechazada. Se ha enviado un correo de notificación al postulante.' 
+      });
+    } catch (error) {
+      console.error('Error rejecting postulant:', error);
       setActionMsg('Error al rechazar la solicitud');
     } finally {
       setActionLoading(null);

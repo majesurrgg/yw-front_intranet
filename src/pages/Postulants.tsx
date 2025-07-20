@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { Postulant } from '../interfaces/postulant.interface';
-import { postulantsService } from '../services/postulants.service';
+import { postulantsService } from '../services/volunteer-postulation/postulants.service';
 import Pagination from '../components/Pagination';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';

@@ -1,5 +1,5 @@
-import type { Postulant, ApiResponse } from '../interfaces/postulant.interface';
-import api from './api';
+import type { Postulant, ApiResponse } from '../../interfaces/postulant.interface';
+import api from '../api';
 
 export const postulantsService = {
   async getPostulants(page: number = 1, limit: number = 10): Promise<ApiResponse> {

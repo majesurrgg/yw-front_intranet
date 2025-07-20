@@ -35,6 +35,23 @@ export class AuthService {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   }
+  static async refreshToken(): Promise<string> {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) throw new Error('No refresh token found');
+  
+      const response = await api.post<{ accessToken: string }>(`/auth/refresh`, {
+        refreshToken,
+      });
+  
+      const newAccessToken = response.data.accessToken;
+      localStorage.setItem('accessToken', newAccessToken);
+      return newAccessToken;
+    } catch (error) {
+      AuthService.logout(); 
+      throw this.handleError(error);
+    }
+  }
   
 
   static getCurrentUser(): LoginResponse | null {

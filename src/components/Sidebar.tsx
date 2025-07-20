@@ -1,8 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaChartBar, FaUsers, FaChalkboardTeacher, FaBars, FaTimes, FaUserPlus, FaPowerOff } from 'react-icons/fa';
+import { 
+  FaChartBar, 
+  FaUsers, 
+  FaChalkboardTeacher, 
+  FaBars, 
+  FaTimes, 
+  FaUserPlus, 
+  FaPowerOff, 
+  FaUser, 
+  FaHandsHelping 
+} from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { UserRole } from '../types/roles.enum';
+import type { UserRoleType } from '../types/roles.enum';
+
+interface MenuItem {
+  path: string;
+  icon: React.ReactNode;
+  label: string;
+  roles?: UserRoleType[];
+}
 
 const SidebarContainer = styled.div<{ isOpen: boolean }>`
   background: #1a1a1a;
@@ -123,12 +142,62 @@ const Sidebar: React.FC = () => {
     setIsOpen(false);
   };
 
-  const menuItems = [
-    { path: '/dashboard', icon: <FaChartBar />, label: 'Dashboard' },
-    { path: '/postulantes', icon: <FaUserPlus />, label: 'Administrar Postulantes' },
-    { path: '/staff', icon: <FaUsers />, label: 'Voluntarios Staff' },
-    { path: '/adviser-volunteers', icon: <FaChalkboardTeacher />, label: 'Voluntarios Asesores' },
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setUserRole(user.role);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
+
+  const menuItems: MenuItem[] = [
+    { 
+      path: '/dashboard', 
+      icon: <FaChartBar />, 
+      label: 'Dashboard',
+      roles: [UserRole.ADMIN, UserRole.AREAS_STAFF]
+    },
+    { 
+      path: '/postulantes', 
+      icon: <FaUserPlus />, 
+      label: 'Administrar Postulantes',
+      roles: [UserRole.ADMIN]
+    },
+    { 
+      path: '/staff', 
+      icon: <FaUsers />, 
+      label: 'Voluntarios Staff',
+      roles: [UserRole.ADMIN]
+    },
+    { 
+      path: '/adviser-volunteers', 
+      icon: <FaChalkboardTeacher />, 
+      label: 'Voluntarios Asesores',
+      roles: [UserRole.ADMIN]
+    },
+    { 
+      path: '/beneficiarios', 
+      icon: <FaHandsHelping />, 
+      label: 'Beneficiarios',
+      roles: [UserRole.ADMIN, UserRole.AREAS_STAFF]
+    },
+    { 
+      path: '/perfil', 
+      icon: <FaUser />, 
+      label: 'Perfil',
+      roles: [UserRole.ADMIN, UserRole.AREAS_STAFF]
+    },
   ];
+
+  const filteredMenuItems = menuItems.filter(item => 
+    !item.roles || (userRole && item.roles.includes(userRole as UserRoleType))
+  );
 
   return (
     <>
@@ -144,7 +213,7 @@ const Sidebar: React.FC = () => {
         </LogoContainer>
         
         <NavList>
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <NavItem 
               key={item.path} 
               active={location.pathname === item.path}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { postulantsService } from '../services/postulants.service';
+import { postulantsService } from '../services/volunteer-postulation/postulants.service';
 import Pagination from '../components/Pagination';
 import { useNavigate } from 'react-router-dom';
 
