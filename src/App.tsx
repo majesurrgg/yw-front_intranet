@@ -9,6 +9,10 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import PostulantDetail from './pages/PostulantDetail';
 import VoluntarioDetail from './pages/VoluntarioDetail';
 import AdviserVolunteers from './pages/AdviserVolunteers';
+import BeneficiaryList from './pages/beneficiaries/BeneficiaryList';
+import BeneficiaryDetail from './pages/beneficiaries/BeneficiaryDetail';
+import BeneficiaryForm from './pages/beneficiaries/BeneficiaryForm';
+import ProfilePage from './pages/ProfilePage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -41,6 +45,11 @@ const AppContent = () => {
         <Route path="postulants/:id" element={<PostulantDetail />} />
         <Route path="staff-volunteers/:id" element={<VoluntarioDetail />} />
         <Route path="adviser-volunteers" element={<AdviserVolunteers />} />
+        <Route path="beneficiaries" element={<BeneficiaryList />} />
+        <Route path="beneficiaries/new" element={<BeneficiaryForm />} />
+        <Route path="perfil" element={<ProfilePage />} />
+        <Route path="beneficiaries/:id" element={<BeneficiaryDetail />} />
+        <Route path="beneficiaries/edit/:id" element={<BeneficiaryForm isEdit={true} />} />
       </Route>
     </Routes>
   );

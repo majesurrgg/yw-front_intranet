@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useState } from 'react';
-import { authService } from '../services/authService';
+import { userService } from '../services/UserService';
 
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
@@ -25,7 +25,7 @@ const ResetPasswordPage = () => {
 
     try {
       setLoading(true);
-      await authService.resetPassword(token, newPassword);
+      await userService.resetPassword(token, newPassword);
       setMessage('✅ Contraseña restablecida con éxito');
     } catch (error) {
       console.error(error);

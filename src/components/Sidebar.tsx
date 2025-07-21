@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { 
   FaChartBar, 
-  FaUsers, 
   FaChalkboardTeacher, 
   FaBars, 
   FaTimes, 
@@ -56,23 +55,31 @@ const NavList = styled.ul`
   padding: 1rem 0;
 `;
 
-const NavItem = styled.li<{ active?: boolean }>`
-  padding: 0.75rem 1.5rem;
-  margin: 0.5rem 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: ${({ active }) => (active ? '#333' : 'transparent')};
+interface NavItemProps {
+  $active: boolean;
+}
 
-  &:hover {
-    background: #333;
-  }
-
+const NavItem = styled.li<NavItemProps>`
   a {
-    color: white;
-    text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    padding: 12px 20px;
+    color: #e0e0e0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    background-color: ${({ $active }) => ($active ? '#2a2a2a' : 'transparent')};
+    border-left-color: ${({ $active }) => ($active ? '#4a90e2' : 'transparent')};
+
+    &:hover {
+      background-color: #2a2a2a;
+      border-left-color: #4a90e2;
+    }
+
+    svg {
+      margin-right: 12px;
+      font-size: 1.1rem;
+    }
   }
 `;
 
@@ -164,26 +171,26 @@ const Sidebar: React.FC = () => {
       roles: [UserRole.ADMIN, UserRole.AREAS_STAFF]
     },
     { 
-      path: '/postulantes', 
-      icon: <FaUserPlus />, 
-      label: 'Administrar Postulantes',
-      roles: [UserRole.ADMIN]
+      path: '/postulantes',
+      icon: <FaUserPlus />,
+      label: 'Postulantes',
+      roles: [UserRole.ADMIN]//puede UserRole.AREAS_STAFF??
     },
     { 
-      path: '/staff', 
-      icon: <FaUsers />, 
+      path: '/staff',
+      icon: <FaHandsHelping />,
       label: 'Voluntarios Staff',
       roles: [UserRole.ADMIN]
     },
     { 
-      path: '/adviser-volunteers', 
-      icon: <FaChalkboardTeacher />, 
+      path: '/asesores',
+      icon: <FaChalkboardTeacher />,
       label: 'Voluntarios Asesores',
       roles: [UserRole.ADMIN]
     },
     { 
-      path: '/beneficiarios', 
-      icon: <FaHandsHelping />, 
+      path: '/beneficiaries',
+      icon: <FaUser />,
       label: 'Beneficiarios',
       roles: [UserRole.ADMIN, UserRole.AREAS_STAFF]
     },
@@ -216,7 +223,7 @@ const Sidebar: React.FC = () => {
           {filteredMenuItems.map((item) => (
             <NavItem 
               key={item.path} 
-              active={location.pathname === item.path}
+              $active={location.pathname === item.path}
               onClick={() => setIsOpen(false)}
             >
               <Link to={item.path}>
