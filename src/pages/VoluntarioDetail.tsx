@@ -284,13 +284,39 @@ const ScheduleTable: React.FC<{ schedules: any[] }> = ({ schedules }) => {
 };
 
 const EditButton = styled(ActionButton)`
-  background: linear-gradient(90deg, #033ED8 0%, #347FF6 100%);
+  background: linear-gradient(90deg, #2563eb 0%, #033ED8 100%);
   color: #fff;
   margin-right: 0.7rem;
+  font-size: 1.1rem;
+  padding: 0.7rem 2.2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(52,127,246,0.18);
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  &:hover {
+    background: linear-gradient(90deg, #033ED8 0%, #2563eb 100%);
+    box-shadow: 0 8px 24px rgba(52,127,246,0.25);
+    transform: translateY(-2px) scale(1.04);
+  }
 `;
 const DeleteButton = styled(ActionButton)`
   background: linear-gradient(90deg, #ef4444 0%, #FF0000 100%);
   color: #fff;
+  font-size: 1.1rem;
+  padding: 0.7rem 2.2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 16px rgba(239,68,68,0.18);
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  &:hover {
+    background: linear-gradient(90deg, #b91c1c 0%, #ef4444 100%);
+    box-shadow: 0 8px 24px rgba(239,68,68,0.25);
+    transform: translateY(-2px) scale(1.04);
+  }
 `;
 const SaveButton = styled(ActionButton)`
   background: linear-gradient(90deg, #22c55e 0%, #a7f3d0 100%);
@@ -359,6 +385,21 @@ const Smile = styled.div`
   transform: translateX(-50%);
 `;
 
+const StyledLink = styled.a`
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.5rem;
+  background: #f0f6ff;
+  transition: background 0.2s, color 0.2s, text-decoration 0.2s;
+  &:hover {
+    background: #2563eb;
+    color: #fff;
+    text-decoration: underline;
+  }
+`;
+
 const VoluntarioDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -370,6 +411,9 @@ const VoluntarioDetail: React.FC = () => {
   const [form, setForm] = useState<any>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -400,11 +444,57 @@ const VoluntarioDetail: React.FC = () => {
 
   const handleSave = async () => {
     if (!id) return;
-    
     try {
-      await volunteerService.updateVolunteer(id, form);
+      let payload: any = { ...form };
+      let useFormData = false;
+      const formData = new FormData();
+      // Si hay archivo nuevo de CV
+      if (cvFile) {
+        formData.append('file', cvFile);
+        useFormData = true;
+      }
+      // Si hay archivo nuevo de Video (opcional, si tu backend lo requiere)
+      if (videoFile) {
+        formData.append('video', videoFile);
+        useFormData = true;
+      }
+      // Agregar el resto de los campos como texto
+      const fields = [
+        'name', 'lastName', 'birthDate', 'phoneNumber', 'email',
+        'typeIdentification', 'numIdentification', 'wasVoluntary',
+        'volunteerMotivation', 'programsUniversity', 'howDidYouFindUs',
+        'idPostulationArea'
+      ];
+      fields.forEach(key => {
+        if (form[key] !== undefined && form[key] !== null) {
+          formData.append(key, String(form[key]));
+        }
+      });
+      // Enviar según tipo de voluntario
+      if (form.typeVolunteer === 'STAFF') {
+        if (useFormData) {
+          await volunteerService.updateStaffVolunteer(id, formData);
+        } else {
+          await volunteerService.updateStaffVolunteer(id, payload);
+        }
+      } else if (form.typeVolunteer === 'ADVISER') {
+        if (useFormData) {
+          await volunteerService.updateAdviserVolunteer(id, formData);
+        } else {
+          await volunteerService.updateAdviserVolunteer(id, payload);
+        }
+      } else {
+        // fallback: updateVolunteer
+        if (useFormData) {
+          await volunteerService.updateVolunteer(id, formData);
+        } else {
+          await volunteerService.updateVolunteer(id, payload);
+        }
+      }
       setShowSuccess(true);
       setEditMode(false);
+      setCvFile(null);
+      setVideoFile(null);
       // Refresh the data after update
       const updatedData = await volunteerService.getVolunteerById(id);
       setData(updatedData);
@@ -418,15 +508,27 @@ const VoluntarioDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      await volunteerService.deleteVolunteer(id);
+      await volunteerService.deleteUniqueVolunteer(id);
       setShowDeleteConfirm(false);
-      // Use navigate instead of window.location for better SPA behavior
-      navigate('/staff');
+      setShowDeleteSuccess(true);
+      setTimeout(() => {
+        if (form?.typeVolunteer === 'STAFF') {
+          navigate('/staff');
+        } else if (form?.typeVolunteer === 'ADVISER') {
+          navigate('/asesores');
+        } else {
+          navigate('/');
+        }
+      }, 1500);
     } catch (err) {
       console.error('Error deleting volunteer:', err);
       setError('Error al eliminar el voluntario');
     }
   };
+
+  // Forzar recarga del PDF si cambia la URL
+  const cvUrl = form?.cvUrl ? `${form.cvUrl}${form.cvUrl.includes('?') ? '&' : '?'}t=${Date.now()}` : undefined;
+  if (cvUrl) console.log('CV URL actual:', cvUrl);
 
   return (
     <Container>
@@ -457,144 +559,149 @@ const VoluntarioDetail: React.FC = () => {
           <SectionBox>
             <SectionTitle>Datos personales</SectionTitle>
             <FormGrid>
-              {form?.name && form?.lastName && (
-                <Field>
-                  <Label>Nombre</Label>
-                  {!editMode ? (
-                    <Value>{form?.name} {form?.lastName}</Value>
+              <Field>
+                <Label>Nombre</Label>
+                {!editMode ? (
+                  <Value>{form?.name || '-'} {form?.lastName || '-'}</Value>
+                ) : (
+                  <input value={form?.name || ''} onChange={e => handleInput('name', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>Email</Label>
+                {!editMode ? (
+                  <Value>{form?.email || '-'}</Value>
+                ) : (
+                  <input value={form?.email || ''} onChange={e => handleInput('email', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>Teléfono</Label>
+                {!editMode ? (
+                  <Value>{form?.phoneNumber || '-'}</Value>
+                ) : (
+                  <input value={form?.phoneNumber || ''} onChange={e => handleInput('phoneNumber', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>Fecha de nacimiento</Label>
+                {!editMode ? (
+                  <Value>{form?.birthDate ? new Date(form?.birthDate).toLocaleDateString() : '-'}</Value>
+                ) : (
+                  <input type="date" value={form?.birthDate ? form?.birthDate.substring(0,10) : ''} onChange={e => handleInput('birthDate', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>Edad</Label>
+                <Value>{form?.birthDate ? Math.floor((Date.now() - new Date(form?.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) + ' años' : '-'}</Value>
+              </Field>
+              <Field>
+                <Label>Tipo de identificación</Label>
+                {!editMode ? (
+                  <Value>{form?.typeIdentification || '-'}</Value>
+                ) : (
+                  <input value={form?.typeIdentification || ''} onChange={e => handleInput('typeIdentification', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>Número de identificación</Label>
+                {!editMode ? (
+                  <Value>{form?.numIdentification || '-'}</Value>
+                ) : (
+                  <input value={form?.numIdentification || ''} onChange={e => handleInput('numIdentification', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>Universidad</Label>
+                {!editMode ? (
+                  <Value>{form?.programsUniversity || '-'}</Value>
+                ) : (
+                  <input value={form?.programsUniversity || ''} onChange={e => handleInput('programsUniversity', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>CV</Label>
+                {!editMode ? (
+                  form?.cvUrl ? (
+                    <a
+                      href={cvUrl || undefined}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ background: '#FDB82D', color: '#222', boxShadow: '0 4px 16px rgba(253,184,45,0.18)', display: 'flex', alignItems: 'center', gap: '0.7rem', fontWeight: 700, borderRadius: '0.7rem', padding: '0.5rem 1.5rem', textDecoration: 'none' }}
+                    >
+                      <FaFilePdf style={{ fontSize: '1.3em' }} /> Ver CV
+                    </a>
                   ) : (
-                    <input value={form?.name || ''} onChange={e => handleInput('name', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.email && (
+                    <Value>-</Value>
+                  )
+                ) : (
+                  <input type="file" accept="application/pdf" onChange={e => setCvFile(e.target.files?.[0] || null)} />
+                )}
+              </Field>
+              {form?.typeVolunteer !== 'STAFF' && (
                 <Field>
-                  <Label>Email</Label>
+                  <Label>Video</Label>
                   {!editMode ? (
-                    <Value>{form?.email}</Value>
+                    form?.videoUrl ? (
+                      <a
+                        href={form.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ background: '#FDB82D', color: '#222', boxShadow: '0 4px 16px rgba(253,184,45,0.18)', display: 'flex', alignItems: 'center', gap: '0.7rem', fontWeight: 700, borderRadius: '0.7rem', padding: '0.5rem 1.5rem', textDecoration: 'none' }}
+                      >
+                        <FaVideo style={{ fontSize: '1.3em' }} /> Ver Video
+                      </a>
+                    ) : (
+                      <Value>-</Value>
+                    )
                   ) : (
-                    <input value={form?.email || ''} onChange={e => handleInput('email', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.phoneNumber && (
-                <Field>
-                  <Label>Teléfono</Label>
-                  {!editMode ? (
-                    <Value>{form?.phoneNumber}</Value>
-                  ) : (
-                    <input value={form?.phoneNumber || ''} onChange={e => handleInput('phoneNumber', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.birthDate && (
-                <Field>
-                  <Label>Fecha de nacimiento</Label>
-                  {!editMode ? (
-                    <Value>{form?.birthDate ? new Date(form?.birthDate).toLocaleDateString() : ''}</Value>
-                  ) : (
-                    <input type="date" value={form?.birthDate ? form?.birthDate.substring(0,10) : ''} onChange={e => handleInput('birthDate', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.birthDate && (
-                <Field>
-                  <Label>Edad</Label>
-                  <Value>{form?.birthDate ? Math.floor((Date.now() - new Date(form?.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) + ' años' : '-'}</Value>
-                </Field>
-              )}
-              {form?.typeIdentification && (
-                <Field>
-                  <Label>Tipo de identificación</Label>
-                  {!editMode ? (
-                    <Value>{form?.typeIdentification}</Value>
-                  ) : (
-                    <input value={form?.typeIdentification || ''} onChange={e => handleInput('typeIdentification', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.numIdentification && (
-                <Field>
-                  <Label>Número de identificación</Label>
-                  {!editMode ? (
-                    <Value>{form?.numIdentification}</Value>
-                  ) : (
-                    <input value={form?.numIdentification || ''} onChange={e => handleInput('numIdentification', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.programsUniversity && (
-                <Field>
-                  <Label>Universidad</Label>
-                  {!editMode ? (
-                    <Value>{form?.programsUniversity}</Value>
-                  ) : (
-                    <input value={form?.programsUniversity || ''} onChange={e => handleInput('programsUniversity', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                    <input type="file" accept="video/*" onChange={e => setVideoFile(e.target.files?.[0] || null)} />
                   )}
                 </Field>
               )}
             </FormGrid>
             <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2.2rem', justifyContent: 'center' }}>
-              <ActionButton
-                style={{ background: '#FDB82D', color: '#222', boxShadow: '0 4px 16px rgba(253,184,45,0.18)', display: 'flex', alignItems: 'center', gap: '0.7rem', fontWeight: 700 }}
-                onClick={() => setModal({ type: 'cv' })}
-              >
-                <FaFilePdf style={{ fontSize: '1.3em' }} /> Ver CV
-              </ActionButton>
-              <ActionButton
-                style={{ background: '#FDB82D', color: '#222', boxShadow: '0 4px 16px rgba(253,184,45,0.18)', display: 'flex', alignItems: 'center', gap: '0.7rem', fontWeight: 700 }}
-                onClick={() => setModal({ type: 'video' })}
-              >
-                <FaVideo style={{ fontSize: '1.3em' }} /> Ver Video
-              </ActionButton>
+             
             </div>
           </SectionBox>
           <SectionBox>
             <SectionTitle>Datos de postulación</SectionTitle>
             <FormGrid>
-              {form?.datePostulation && (
-                <Field>
-                  <Label>Fecha de postulación</Label>
-                  {!editMode ? (
-                    <Value>{form?.datePostulation ? new Date(form?.datePostulation).toLocaleDateString() : ''}</Value>
-                  ) : (
-                    <input placeholder="Fecha de postulación" type="date" value={form?.datePostulation ? form?.datePostulation.substring(0,10) : ''} onChange={e => handleInput('datePostulation', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.wasVoluntary !== undefined && form?.wasVoluntary !== null && (
-                <Field>
-                  <Label>¿Fue voluntario antes?</Label>
-                  {!editMode ? (
-                    <Value>{form?.wasVoluntary ? 'Sí' : 'No'}</Value>
-                  ) : (
-                    <select value={form?.wasVoluntary ? 'true' : 'false'} onChange={e => handleInput('wasVoluntary', e.target.value === 'true')} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }}>
-                      <option value="true">Sí</option>
-                      <option value="false">No</option>
-                    </select>
-                  )}
-                </Field>
-              )}
-              {form?.volunteerMotivation && (
-                <Field>
-                  <Label>Motivación</Label>
-                  {!editMode ? (
-                    <Value>{form?.volunteerMotivation}</Value>
-                  ) : (
-                    <input placeholder="Motivación" value={form?.volunteerMotivation || ''} onChange={e => handleInput('volunteerMotivation', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.howDidYouFindUs && (
-                <Field>
-                  <Label>¿Cómo nos encontró?</Label>
-                  {!editMode ? (
-                    <Value>{form?.howDidYouFindUs}</Value>
-                  ) : (
-                    <input placeholder="¿Cómo nos encontró?" value={form?.howDidYouFindUs || ''} onChange={e => handleInput('howDidYouFindUs', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
+              <Field>
+                <Label>Fecha de postulación</Label>
+                {!editMode ? (
+                  <Value>{form?.datePostulation ? new Date(form?.datePostulation).toLocaleDateString() : '-'}</Value>
+                ) : (
+                  <input placeholder="Fecha de postulación" type="date" value={form?.datePostulation ? form?.datePostulation.substring(0,10) : ''} onChange={e => handleInput('datePostulation', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>¿Fue voluntario antes?</Label>
+                {!editMode ? (
+                  <Value>{form?.wasVoluntary === undefined || form?.wasVoluntary === null ? '-' : (form?.wasVoluntary ? 'Sí' : 'No')}</Value>
+                ) : (
+                  <select value={form?.wasVoluntary ? 'true' : 'false'} onChange={e => handleInput('wasVoluntary', e.target.value === 'true')} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }}>
+                    <option value="true">Sí</option>
+                    <option value="false">No</option>
+                  </select>
+                )}
+              </Field>
+              <Field>
+                <Label>Motivación</Label>
+                {!editMode ? (
+                  <Value>{form?.volunteerMotivation || '-'}</Value>
+                ) : (
+                  <input placeholder="Motivación" value={form?.volunteerMotivation || ''} onChange={e => handleInput('volunteerMotivation', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
+              <Field>
+                <Label>¿Cómo nos encontró?</Label>
+                {!editMode ? (
+                  <Value>{form?.howDidYouFindUs || '-'}</Value>
+                ) : (
+                  <input placeholder="¿Cómo nos encontró?" value={form?.howDidYouFindUs || ''} onChange={e => handleInput('howDidYouFindUs', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
+                )}
+              </Field>
               {form?.advisoryCapacity && (
                 <Field>
                   <Label>Capacidad de asesoría</Label>
@@ -612,19 +719,6 @@ const VoluntarioDetail: React.FC = () => {
                     <Value>{form?.schoolGrades}</Value>
                   ) : (
                     <input placeholder="Grados de colegio" value={form?.schoolGrades || ''} onChange={e => handleInput('schoolGrades', e.target.value)} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }} />
-                  )}
-                </Field>
-              )}
-              {form?.callingPlan !== undefined && form?.callingPlan !== null && (
-                <Field>
-                  <Label>¿Plan de llamadas?</Label>
-                  {!editMode ? (
-                    <Value>{form?.callingPlan ? 'Sí' : 'No'}</Value>
-                  ) : (
-                    <select value={form?.callingPlan ? 'true' : 'false'} onChange={e => handleInput('callingPlan', e.target.value === 'true')} style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid #ccc' }}>
-                      <option value="true">Sí</option>
-                      <option value="false">No</option>
-                    </select>
                   )}
                 </Field>
               )}
@@ -647,6 +741,24 @@ const VoluntarioDetail: React.FC = () => {
                   </Value>
                 </Field>
               )}
+              {typeof form?.experience !== 'undefined' && form?.experience !== null && (
+                <Field>
+                  <Label>¿Tiene experiencia previa?</Label>
+                  <Value>{form?.experience ? 'Sí' : 'No'}</Value>
+                </Field>
+              )}
+              {Array.isArray(form?.responses) && form.responses.length > 0 && (
+                <Field style={{ gridColumn: '1 / -1' }}>
+                  <Label>Respuestas específicas</Label>
+                  <Value>
+                    <ul style={{ margin: 0, paddingLeft: 20 }}>
+                      {form.responses.map((resp: any, idx: number) => (
+                        <li key={idx}>{resp.question}: {resp.answer}</li>
+                      ))}
+                    </ul>
+                  </Value>
+                </Field>
+              )}
             </FormGrid>
           </SectionBox>
         </DataBox>
@@ -657,11 +769,11 @@ const VoluntarioDetail: React.FC = () => {
           <ModalOverlay onClick={() => setModal({ type: null })}>
             <ModalContent onClick={e => e.stopPropagation()}>
               <CloseButton onClick={() => setModal({ type: null })}>&times;</CloseButton>
-              {modal.type === 'cv' && (
+              {modal.type === 'cv' && cvUrl && (
                 <>
                   <h2 style={{marginBottom: '1rem', fontWeight: 700, color: '#033ED8'}}>Vista previa del CV</h2>
                   <iframe
-                    src={form?.cvUrl}
+                    src={cvUrl}
                     title="Vista previa CV"
                     width="500"
                     height="600"
@@ -713,6 +825,21 @@ const VoluntarioDetail: React.FC = () => {
               <DeleteButton onClick={handleDelete}><FaTrash /> Eliminar</DeleteButton>
               <EditButton onClick={() => setShowDeleteConfirm(false)}>Cancelar</EditButton>
             </div>
+          </AnimatedModalConfirm>
+        </AnimatedModalOverlay>
+      )}
+      {showDeleteSuccess && (
+        <AnimatedModalOverlay>
+          <AnimatedModalConfirm>
+            <div style={{ width: 70, height: 70, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.2rem auto', boxShadow: '0 2px 16px rgba(0,0,0,0.10)' }}>
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="19" cy="19" r="19" fill="#22c55e"/>
+                <path d="M11 20.5L17 26.5L27 15.5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h2 style={{ fontWeight: 700, fontSize: '1.3rem', color: '#22c55e', marginBottom: '1.2rem' }}>
+              El registro se ha eliminado correctamente
+            </h2>
           </AnimatedModalConfirm>
         </AnimatedModalOverlay>
       )}

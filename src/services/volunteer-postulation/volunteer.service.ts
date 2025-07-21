@@ -30,6 +30,36 @@ class VolunteerService {
       throw error;
     }
   }
+
+  async updateStaffVolunteer(id: string, data: any) {
+    try {
+      const response = await api.put(`/volunteer/staff/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating staff volunteer:', error);
+      throw error;
+    }
+  }
+
+  async updateAdviserVolunteer(id: string, data: any) {
+    try {
+      const response = await api.put(`/volunteer/adviser/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating adviser volunteer:', error);
+      throw error;
+    }
+  }
+
+  async deleteUniqueVolunteer(id: string) {
+    try {
+      const response = await api.delete(`/volunteer/delete/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting unique volunteer:', error);
+      throw error;
+    }
+  }
 }
 
 export default new VolunteerService();

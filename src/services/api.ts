@@ -3,7 +3,7 @@ import type { AxiosInstance } from "axios";
 import { AuthService } from "./auth.service"; 
 
 const API_URL_LOCAL: string = 'http://localhost:3000/api';
-const API_URL_PRODUCTION: string = 'https://yachaywasiback.shop/api';
+const API_URL_PRODUCTION: string = 'http://localhost:3000/api';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL_PRODUCTION, 

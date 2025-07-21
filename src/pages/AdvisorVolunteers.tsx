@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { postulantsService } from '../services/volunteer-postulation/postulants.service';
 import Pagination from '../components/Pagination';
 import { useNavigate } from 'react-router-dom';
+import volunteerService from '../services/volunteer-postulation/volunteer.service';
 
 const GradientTitle = styled.h1`
   font-size: 2.5rem;
@@ -39,6 +40,7 @@ const AdvisorVolunteers: React.FC = () => {
     howDidYouFindUs: '',
     schoolGrades: ''
   });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -113,6 +115,21 @@ const AdvisorVolunteers: React.FC = () => {
       11: 'Innovación & Calidad'
     };
     return areas[areaId] || `Área ${areaId}`;
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de eliminar este voluntario?')) return;
+    setDeletingId(id);
+    try {
+      await volunteerService.deleteVolunteer(id);
+      setAllAdvisers(prev => prev.filter(a => a.id !== id));
+      setFilteredAdvisers(prev => prev.filter(a => a.id !== id));
+      setTotalItems(prev => prev - 1);
+    } catch (err) {
+      alert('Error al eliminar el voluntario');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -262,7 +279,19 @@ const AdvisorVolunteers: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{adviser.programsUniversity}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{adviser.phoneNumber}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <button className="text-blue-600 hover:underline" onClick={e => { e.stopPropagation(); navigate(`/staff-volunteers/${adviser.id}`); }}>Ver detalle</button>
+                    <button
+                      className="text-blue-600 hover:underline mr-2"
+                      onClick={e => { e.stopPropagation(); navigate(`/staff-volunteers/${adviser.id}`); }}
+                    >
+                      Ver detalle
+                    </button>
+                    <button
+                      className="text-red-600 hover:underline"
+                      disabled={deletingId === adviser.id}
+                      onClick={e => { e.stopPropagation(); handleDelete(adviser.id); }}
+                    >
+                      {deletingId === adviser.id ? 'Eliminando...' : 'Eliminar'}
+                    </button>
                   </td>
                 </tr>
               ))
@@ -278,7 +307,7 @@ const AdvisorVolunteers: React.FC = () => {
           totalItems={totalItems}
           itemsPerPage={itemsPerPage}
         />
-      </div>
+    </div>
     </AdviserContainer>
   );
 };
